@@ -94,6 +94,54 @@ func main() {
 		SetJSONResp(res, http.StatusOK, productJSON)
 	})
 
+	http.HandleFunc("/products/add", func(res http.ResponseWriter, req *http.Request) {
+
+		if req.Method != "POST" {
+
+			resMessage := []byte(`{
+				"success": false,
+				"data": null,
+				"message": "Invalid http method",
+				"code": 405
+			}`)
+
+			SetJSONResp(res, http.StatusMethodNotAllowed, resMessage)
+			return
+		}
+
+		var product Product
+
+		payload := req.Body
+
+		defer req.Body.Close()
+
+		err := json.NewDecoder(payload).Decode(&product)
+		if err != nil {
+
+			resMessage := []byte(`{
+				"success": false,
+				"data": null,
+				"message": "Error when parsing data",
+				"code": 500
+			}`)
+
+			SetJSONResp(res, http.StatusInternalServerError, resMessage)
+			return
+		}
+
+		database[product.ID] = product
+
+		// must be fixing later
+		resMessage := []byte(`{
+			"success": true,
+			"data": null,
+			"message": "Success create product",
+			"code": 201
+		}`)
+
+		SetJSONResp(res, http.StatusCreated, resMessage)
+	})
+
 	// listen port
 	err := http.ListenAndServe(":9000", nil)
 
