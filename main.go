@@ -94,7 +94,68 @@ func main() {
 		SetJSONResp(res, http.StatusOK, productJSON)
 	})
 
-	http.HandleFunc("/products/add", func(res http.ResponseWriter, req *http.Request) {
+	http.HandleFunc("/product", func(res http.ResponseWriter, req *http.Request) {
+
+		if req.Method != "GET" {
+
+			resMessage := []byte(`{
+				"success": false,
+				"data": null,
+				"message": "Invalid http method",
+				"code": 405
+			}`)
+
+			SetJSONResp(res, http.StatusMethodNotAllowed, resMessage)
+			return
+		}
+
+		if _, ok := req.URL.Query()["id"]; !ok {
+
+			resMessage := []byte(`{
+				"success": false,
+				"data": null,
+				"message": "Required product id",
+				"code": 500
+			}`)
+
+			SetJSONResp(res, http.StatusInternalServerError, resMessage)
+			return
+		}
+
+		id := req.URL.Query()["id"][0]
+
+		product, ok := database[id]
+		if !ok {
+
+			resMessage := []byte(`{
+				"success": false,
+				"data": null,
+				"message": "Product not found",
+				"code": 404
+			}`)
+
+			SetJSONResp(res, http.StatusNotFound, resMessage)
+			return
+		}
+
+		productJSON, err := json.Marshal(&product)
+		if err != nil {
+
+			resMessage := []byte(`{
+				"success": false,
+				"data": null,
+				"message": "Error when parsing data",
+				"code": 500
+			}`)
+
+			SetJSONResp(res, http.StatusInternalServerError, resMessage)
+			return
+		}
+
+		SetJSONResp(res, http.StatusOK, productJSON)
+	})
+
+	http.HandleFunc("/product/add", func(res http.ResponseWriter, req *http.Request) {
 
 		if req.Method != "POST" {
 
